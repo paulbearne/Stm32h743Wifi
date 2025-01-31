@@ -4,6 +4,7 @@
  requires tibyusb https://github.com/hathach/tinyusb
  and esp-hosted-fg https://github.com/espressif/esp-hosted note that the esp-hosted has a few mods 
  to pin names and ports and also for the spi and comms ports used
+ freertos console is based on the this project https://github.com/aaron-ev/CLI-STM32-FreeRTOS
 
 i am using esp-s3 mini for testing the connections between the spi pins should be as short as possible
 
