@@ -40,7 +40,7 @@ static const uint8_t rgb565_regs[][2] = {
 //-------------------------------------
 static const uint8_t jpeg_regs[][2] = {
     {BANK_SEL,      BANK_SEL_DSP},
-    {REG_RESET,         REG_RESET_DVP},
+    {REG_RESET,     REG_RESET_DVP},
     {IMAGE_MODE,    IMAGE_MODE_JPEG_EN | IMAGE_MODE_RGB565}, // | IMAGE_MODE_HREF_VSYNC
     {0xd7,          0x03},
     {0xe1,          0x77},
@@ -120,7 +120,6 @@ static uint8_t OV2640_RD_Reg(uint8_t reg)
     return data;
 }
 
-//------------------------------------------------
 static void wrSensorRegs(const uint8_t (*regs)[2])
 {
     for (int i = 0; regs[i][0]; i++) {
@@ -128,8 +127,7 @@ static void wrSensorRegs(const uint8_t (*regs)[2])
     }
 }
 
-//----------------
-static int reset()
+int ov2640_reset()
 {
 	  ov2640_delay(100);
     // Reset all registers
@@ -144,8 +142,7 @@ static int reset()
     return 0;
 }
 
-//----------------------------------------
-int set_special_effect(uint8_t sde)
+int ov2640_set_special_effect(uint8_t sde)
 {
     if (sde >= NUM_EFFECTS) return -1;
     OV2640_WR_Reg(BANK_SEL, BANK_SEL_DSP);
@@ -158,8 +155,7 @@ int set_special_effect(uint8_t sde)
     return 0;
 }
 
-//-----------------------------------
-int set_exposure(int exposure)
+int ov2640_set_exposure(int exposure)
 {
     int ret = 0;
     // Disable DSP
@@ -198,8 +194,8 @@ int set_exposure(int exposure)
     return ret;
 }
 
-//-------------------------------------------
-static void _set_framesize(uint8_t framesize)
+
+static void _ov2640_set_framesize(uint8_t framesize)
 {
     uint8_t cbar, qsreg, com7;
 
@@ -245,8 +241,8 @@ static void _set_framesize(uint8_t framesize)
     OV2640_WR_Reg(R_BYPASS, R_BYPASS_DSP_EN);
 }
 
-//---------------------------------------------
-static int set_pixformat(pixformat_t pixformat)
+
+int ov2640_set_pixformat(pixformat_t pixformat)
 {
     // Disable DSP
     OV2640_WR_Reg(BANK_SEL, BANK_SEL_DSP);
@@ -272,8 +268,8 @@ static int set_pixformat(pixformat_t pixformat)
             OV2640_WR_Reg(R_BYPASS, R_BYPASS_DSP_EN);
             return -1;
     }
-    _set_framesize(hcamera.framesize);
-    // Enable DSP (enabled in '_set_framesize'
+    _ov2640_set_framesize(hcamera.framesize);
+    // Enable DSP (enabled in '_ov2640_set_framesize'
     //OV2640_WR_Reg(BANK_SEL, BANK_SEL_DSP);
     //OV2640_WR_Reg(R_BYPASS, R_BYPASS_DSP_EN);
     // Delay 30 ms
@@ -282,8 +278,7 @@ static int set_pixformat(pixformat_t pixformat)
     return 0;
 }
 
-//-----------------------------------------
-int set_framesize(framesize_t framesize)
+int ov2640_set_framesize(framesize_t framesize)
 {
     int i = OV2640_NUM_ALLOWED_SIZES;
     for (i=0; i<OV2640_NUM_ALLOWED_SIZES; i++) {
@@ -295,7 +290,7 @@ int set_framesize(framesize_t framesize)
     }
 
     hcamera.framesize = framesize;
-    _set_framesize(framesize);
+    _ov2640_set_framesize(framesize);
 
     //delay 30 ms
     ov2640_delay(30);
@@ -303,7 +298,7 @@ int set_framesize(framesize_t framesize)
     return 0;
 }
 
-//-------------------------------------------
+
 int ov2640_check_framesize(uint8_t framesize)
 {
     int i = OV2640_NUM_ALLOWED_SIZES;
@@ -314,8 +309,8 @@ int ov2640_check_framesize(uint8_t framesize)
     return 0;
 }
 
-//--------------------------------
-int set_contrast(int level)
+
+int ov2640_set_contrast(int level)
 {
     level += (NUM_CONTRAST_LEVELS / 2) + 1;
     if (level < 0 || level > NUM_CONTRAST_LEVELS) {
@@ -333,8 +328,7 @@ int set_contrast(int level)
     return 0;
 }
 
-//----------------------------------
-int set_brightness(int level)
+int ov2640_set_brightness(int level)
 {
     level += (NUM_BRIGHTNESS_LEVELS / 2) + 1;
     if ((level < 0) || (level > NUM_BRIGHTNESS_LEVELS)) return -1;
@@ -350,8 +344,8 @@ int set_brightness(int level)
     return 0;
 }
 
-//----------------------------------
-int set_saturation(int level)
+
+int ov2640_set_saturation(int level)
 {
     level += (NUM_SATURATION_LEVELS / 2) + 1;
     if ((level < 0) || (level > NUM_SATURATION_LEVELS)) return -1;
@@ -367,8 +361,7 @@ int set_saturation(int level)
     return 0;
 }
 
-//----------------------------
-int set_quality(int qs)
+int ov2640_set_quality(int qs)
 {
     if ((qs < 2) || (qs > 60)) return -1;
 
@@ -379,21 +372,24 @@ int set_quality(int qs)
     return 0;
 }
 
-//---------------------------------
-int set_colorbar(int enable)
+int ov2640_set_colorbar(int enable)
 {
     uint8_t reg;
     OV2640_WR_Reg(BANK_SEL, BANK_SEL_SENSOR);
     reg = OV2640_RD_Reg(COM7);
 
-    if (enable) reg |= COM7_COLOR_BAR;
-    else reg &= ~COM7_COLOR_BAR;
-
+    if (enable){
+    	reg |= COM7_COLOR_BAR;
+    }
+    else
+    {
+    	reg &= ~COM7_COLOR_BAR;
+    }
     return OV2640_WR_Reg(COM7, reg);
 }
 
-//--------------------------------
-static int set_hmirror(int enable)
+
+int ov2640_set_hmirror(int enable)
 {
     uint8_t reg;
     OV2640_WR_Reg(BANK_SEL, BANK_SEL_SENSOR);
@@ -409,8 +405,7 @@ static int set_hmirror(int enable)
     return OV2640_WR_Reg(REG04, reg);
 }
 
-//------------------------------
-static int set_vflip(int enable)
+int ov2640_set_vflip(int enable)
 {
     uint8_t reg;
     OV2640_WR_Reg(BANK_SEL, BANK_SEL_SENSOR);
@@ -426,7 +421,7 @@ static int set_vflip(int enable)
     return OV2640_WR_Reg(REG04, reg);
 }
 
-//---------------------------------------------------------
+
 int read_id(uint16_t *manuf_id, uint16_t *device_id)
 {
     OV2640_WR_Reg(BANK_SEL, BANK_SEL_SENSOR);
@@ -435,13 +430,13 @@ int read_id(uint16_t *manuf_id, uint16_t *device_id)
     return 0;
 }
 
-//------------------------------------
+
 int read_reg(uint16_t reg_addr)
 {
     return (int)OV2640_RD_Reg((uint8_t) reg_addr);
 }
 
-//--------------------------------------------------------
+
 int write_reg(uint16_t reg_addr, uint16_t reg_data)
 {
     return (int)OV2640_WR_Reg((uint8_t)reg_addr, (uint8_t)reg_data);
@@ -457,8 +452,8 @@ static const uint8_t OV2640_LIGHTMODE_TBL[5][3]=
 };
 
 
-//-------------------------------------
-int set_light_mode(uint8_t mode)
+
+int ov2640_set_light_mode(uint8_t mode)
 {
     if (mode > 4) return -1;
 
@@ -475,8 +470,7 @@ int set_light_mode(uint8_t mode)
     return 0;
 }
 
-//-----------------------------------
-int set_night_mode(int enable)
+int ov2640_set_night_mode(int enable)
 {
     // Disable DSP
     OV2640_WR_Reg(BANK_SEL, BANK_SEL_DSP);
@@ -492,16 +486,16 @@ int set_night_mode(int enable)
     return 0;
 }
 
-//===============================
+
 int ov2640_init(framesize_t framesize)
 {
-	reset();
+	ov2640_reset();
 	hcamera.framesize = framesize;
 	hcamera.pixformat = PIXFORMAT_RGB565;
-	//set_framesize(FRAMESIZE_QQVGA);
-	set_pixformat(hcamera.pixformat);
-	set_hmirror(0);
-	set_vflip(0);
+	//ov2640_set_framesize(FRAMESIZE_QQVGA);
+	ov2640_set_pixformat(hcamera.pixformat);
+	ov2640_set_hmirror(0);
+	ov2640_set_vflip(0);
   return 0;
 }
 

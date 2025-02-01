@@ -8,107 +8,155 @@
 bspCameraHandleTypeDef hcamera;
 // Resolution table
 //----------------------------------------
-const uint16_t dvp_cam_resolution[][2] = {
-	{0, 0},
-	// C/SIF Resolutions
-	{88, 72},	/* QQCIF     */
-	{176, 144}, /* QCIF      */
-	{352, 288}, /* CIF       */
-	{88, 60},	/* QQSIF     */
-	{176, 120}, /* QSIF      */
-	{352, 240}, /* SIF       */
-	// VGA Resolutions
-	{40, 30},	/* QQQQVGA   */
-	{80, 60},	/* QQQVGA    */
-	{160, 120}, /* QQVGA     */
-	{320, 240}, /* QVGA      */
-	{640, 480}, /* VGA       */
-	{60, 40},	/* HQQQVGA   */
-	{120, 80},	/* HQQVGA    */
-	{240, 160}, /* HQVGA     */
-	{480, 320}, /* HVGA      */
-	// FFT Resolutions
-	{64, 32},	/* 64x32     */
-	{64, 64},	/* 64x64     */
-	{128, 64},	/* 128x64    */
-	{128, 128}, /* 128x64    */
-	// Other
-	{128, 160},	  /* LCD       */
-	{128, 160},	  /* QQVGA2    */
-	{720, 480},	  /* WVGA      */
-	{752, 480},	  /* WVGA2     */
-	{800, 600},	  /* SVGA      */
-	{1024, 768},  /* XGA       */
-	{1280, 1024}, /* SXGA      */
-	{1600, 1200}, /* UXGA      */
-	{1280, 720},  /* 720P      */
-	{1920, 1080}, /* 1080P     */
-	{1280, 960},  /* 960P      */
-	{2592, 1944}, /* 5MP       */
+const uint16_t dvp_cam_resolution[][2] = { { 0, 0 },
+// C/SIF Resolutions
+		{ 88, 72 }, /* QQCIF     */
+		{ 176, 144 }, /* QCIF      */
+		{ 352, 288 }, /* CIF       */
+		{ 88, 60 }, /* QQSIF     */
+		{ 176, 120 }, /* QSIF      */
+		{ 352, 240 }, /* SIF       */
+		// VGA Resolutions
+		{ 40, 30 }, /* QQQQVGA   */
+		{ 80, 60 }, /* QQQVGA    */
+		{ 160, 120 }, /* QQVGA     */
+		{ 320, 240 }, /* QVGA      */
+		{ 640, 480 }, /* VGA       */
+		{ 60, 40 }, /* HQQQVGA   */
+		{ 120, 80 }, /* HQQVGA    */
+		{ 240, 160 }, /* HQVGA     */
+		{ 480, 320 }, /* HVGA      */
+		// FFT Resolutions
+		{ 64, 32 }, /* 64x32     */
+		{ 64, 64 }, /* 64x64     */
+		{ 128, 64 }, /* 128x64    */
+		{ 128, 128 }, /* 128x64    */
+		// Other
+		{ 128, 160 }, /* LCD       */
+		{ 128, 160 }, /* QQVGA2    */
+		{ 720, 480 }, /* WVGA      */
+		{ 752, 480 }, /* WVGA2     */
+		{ 800, 600 }, /* SVGA      */
+		{ 1024, 768 }, /* XGA       */
+		{ 1280, 1024 }, /* SXGA      */
+		{ 1600, 1200 }, /* UXGA      */
+		{ 1280, 720 }, /* 720P      */
+		{ 1920, 1080 }, /* 1080P     */
+		{ 1280, 960 }, /* 960P      */
+		{ 2592, 1944 }, /* 5MP       */
 };
 
-int32_t bspCameraWriteReg(bspCameraHandleTypeDef *hov, uint8_t regAddr, const uint8_t *pData)
-{
+int32_t bspCameraWriteReg(bspCameraHandleTypeDef *hov, uint8_t regAddr,
+		const uint8_t *pData) {
 	uint8_t tt[2];
 	tt[0] = regAddr;
 	tt[1] = pData[0];
-	if (HAL_I2C_Master_Transmit(hov->hi2c, hov->addr, tt, 2, hov->timeout) == HAL_OK)
-	{
+	if (HAL_I2C_Master_Transmit(hov->hi2c, hov->addr, tt, 2, hov->timeout)
+			== HAL_OK) {
 		return bspCameraOK;
-	}
-	else
-	{
+	} else {
 		return bspCameraERROR;
 	}
 }
 
-int32_t bspCameraReadReg(bspCameraHandleTypeDef *hov, uint8_t regAddr, uint8_t *pData)
-{
-	HAL_I2C_Master_Transmit(hov->hi2c, hov->addr + 1, &regAddr, 1, hov->timeout);
-	if (HAL_I2C_Master_Receive(hov->hi2c, hov->addr + 1, pData, 1, hov->timeout) == HAL_OK)
-	{
+int32_t bspCameraReadReg(bspCameraHandleTypeDef *hov, uint8_t regAddr,
+		uint8_t *pData) {
+	HAL_I2C_Master_Transmit(hov->hi2c, hov->addr + 1, &regAddr, 1,
+			hov->timeout);
+	if (HAL_I2C_Master_Receive(hov->hi2c, hov->addr + 1, pData, 1, hov->timeout)
+			== HAL_OK) {
 		return bspCameraOK;
-	}
-	else
-	{
+	} else {
 		return bspCameraERROR;
 	}
 }
 
-int32_t bspCameraWriteRegb2(bspCameraHandleTypeDef *hov, uint16_t reg_addr, uint8_t reg_data)
-{
+int32_t bspCameraWriteRegb2(bspCameraHandleTypeDef *hov, uint16_t reg_addr,
+		uint8_t reg_data) {
 	if (HAL_I2C_Mem_Write(hov->hi2c, hov->addr + 1, reg_addr,
-						  I2C_MEMADD_SIZE_16BIT, &reg_data, 1, hov->timeout) == HAL_OK)
-	{
+	I2C_MEMADD_SIZE_16BIT, &reg_data, 1, hov->timeout) == HAL_OK) {
 		return bspCameraOK;
-	}
-	else
-	{
+	} else {
 		return bspCameraERROR;
 	}
 }
 
-int32_t bspCameraReadRegb2(bspCameraHandleTypeDef *hov, uint16_t reg_addr, uint8_t *reg_data)
-{
+int32_t bspCameraReadRegb2(bspCameraHandleTypeDef *hov, uint16_t reg_addr,
+		uint8_t *reg_data) {
 	if (HAL_I2C_Mem_Read(hov->hi2c, hov->addr + 1, reg_addr,
-						 I2C_MEMADD_SIZE_16BIT, reg_data, 1, hov->timeout) == HAL_OK)
-	{
+	I2C_MEMADD_SIZE_16BIT, reg_data, 1, hov->timeout) == HAL_OK) {
 		return bspCameraOK;
-	}
-	else
-	{
+	} else {
 		return bspCameraERROR;
 	}
 }
+/*
+ int32_t bcspCameraGetSpecialEffects(bspCameraHandleTypeDef *hov, uint8_t sde) {
 
-int32_t bspCameraWriteRegList(bspCameraHandleTypeDef *hov, const struct regval_t *reg_list)
-{
+ if (hov->manuf_id == 0x7fa2 && hcamera->device_id == 0x7673) {
+ // OV7670
+
+ } else if (hcamera.manuf_id == 0x7fa2
+ && ((hcamera.device_id - 0x2641) <= 2)) {
+ //OV2640
+
+ } else if (hcamera.device_id == 0x5640) {
+ //OV5640
+
+ } else if (hcamera.manuf_id == 0x7fa2
+ && ((hcamera.device_id - 0x7721) <= 2)) {
+ //OV7725
+
+ }
+ }*/
+
+int bspCameraSetSpecialEffects(uint8_t sde) {
+	if (hcamera.manuf_id == 0x7fa2 && hcamera.device_id == 0x7673) {
+		// OV7670
+
+	} else if (hcamera.manuf_id == 0x7fa2
+			&& ((hcamera.device_id - 0x2641) <= 2)) {
+		//OV2640
+		return ov2640_set_special_effect(sde);
+
+	} else if (hcamera.device_id == 0x5640) {
+		//OV5640
+
+	} else if (hcamera.manuf_id == 0x7fa2
+			&& ((hcamera.device_id - 0x7721) <= 2)) {
+		//OV7725
+
+	}
+	return -1;
+}
+
+int bspCameraSetColorbar(int enable) {
+	if (hcamera.manuf_id == 0x7fa2 && hcamera.device_id == 0x7673) {
+		// OV7670
+
+	} else if (hcamera.manuf_id == 0x7fa2
+			&& ((hcamera.device_id - 0x2641) <= 2)) {
+		//OV2640
+		return ov2640_set_colorbar(enable);
+
+	} else if (hcamera.device_id == 0x5640) {
+		//OV5640
+
+	} else if (hcamera.manuf_id == 0x7fa2
+			&& ((hcamera.device_id - 0x7721) <= 2)) {
+		//OV7725
+
+	}
+	return -1;
+}
+
+int32_t bspCameraWriteRegList(bspCameraHandleTypeDef *hov,
+		const struct regval_t *reg_list) {
 	const struct regval_t *pReg = reg_list;
-	while (pReg->reg_addr != 0xFF && pReg->value != 0xFF)
-	{
-		int write_result = bspCameraWriteReg(hov, pReg->reg_addr, &(pReg->value));
-		if (write_result != bspCameraOK)
-		{
+	while (pReg->reg_addr != 0xFF && pReg->value != 0xFF) {
+		int write_result = bspCameraWriteReg(hov, pReg->reg_addr,
+				&(pReg->value));
+		if (write_result != bspCameraOK) {
 			return write_result;
 		}
 		pReg++;
@@ -116,33 +164,28 @@ int32_t bspCameraWriteRegList(bspCameraHandleTypeDef *hov, const struct regval_t
 	return bspCameraOK;
 }
 
-int32_t bspCameraread_id(bspCameraHandleTypeDef *hov)
-{
+int32_t bspCameraread_id(bspCameraHandleTypeDef *hov) {
 	uint8_t temp[2];
 	temp[0] = 0x01;
-	if (hov->addr != OV5640_ADDRESS)
-	{
+	if (hov->addr != OV5640_ADDRESS) {
 		bspCameraWriteReg(hov, 0xFF, temp);
 		bspCameraReadReg(hov, 0x1C, &temp[0]);
 		bspCameraReadReg(hov, 0x1D, &temp[1]);
-		hov->manuf_id = ((uint16_t)temp[0] << 8) | temp[1];
+		hov->manuf_id = ((uint16_t) temp[0] << 8) | temp[1];
 		bspCameraReadReg(hov, 0x0A, &temp[0]);
 		bspCameraReadReg(hov, 0x0B, &temp[1]);
-	}
-	else
-	{
+	} else {
 #define OV5640_CHIP_IDH 0x300A
 #define OV5640_CHIP_IDL 0x300B
 		bspCameraReadRegb2(&hcamera, OV5640_CHIP_IDH, &temp[0]);
 		bspCameraReadRegb2(&hcamera, OV5640_CHIP_IDL, &temp[1]);
 		hov->manuf_id = 0;
 	}
-	hov->device_id = ((uint16_t)temp[0] << 8) | temp[1];
+	hov->device_id = ((uint16_t) temp[0] << 8) | temp[1];
 	return 0;
 }
 
-void bspCameraReset(bspCameraHandleTypeDef *hov)
-{
+void bspCameraReset(bspCameraHandleTypeDef *hov) {
 	uint8_t temp;
 	temp = 0x01;
 	bspCameraWriteReg(hov, 0xFF, &temp);
@@ -151,17 +194,15 @@ void bspCameraReset(bspCameraHandleTypeDef *hov)
 	HAL_Delay(100);
 }
 
-void bspCameraXCLK_Set(uint8_t xclktype)
-{
+void bspCameraXCLK_Set(uint8_t xclktype) {
 #define USE_LCD 0
 
 #if USE_LCD
 #include "lcd.h"
 #endif
-	if (xclktype == XCLK_TIM)
-	{
-		TIM_OC_InitTypeDef sConfigOC = {0};
-		GPIO_InitTypeDef GPIO_InitStruct = {0};
+	if (xclktype == XCLK_TIM) {
+		TIM_OC_InitTypeDef sConfigOC = { 0 };
+		GPIO_InitTypeDef GPIO_InitStruct = { 0 };
 
 		// DeInit TIM1 PWM OutPut
 		HAL_GPIO_DeInit(GPIOA, GPIO_PIN_8);
@@ -175,8 +216,7 @@ void bspCameraXCLK_Set(uint8_t xclktype)
 		htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim1.Init.RepetitionCounter = 0;
 		htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
-		{
+		if (HAL_TIM_PWM_Init(&htim1) != HAL_OK) {
 			Error_Handler();
 		}
 
@@ -187,8 +227,8 @@ void bspCameraXCLK_Set(uint8_t xclktype)
 		sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 		sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
 		sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-		if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-		{
+		if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1)
+				!= HAL_OK) {
 			Error_Handler();
 		}
 
@@ -206,9 +246,7 @@ void bspCameraXCLK_Set(uint8_t xclktype)
 		// Init 0.96''LCD Light Timer
 		LCD_SoftPWMCtrlInit();
 #endif
-	}
-	else
-	{
+	} else {
 #if USE_LCD
 		// DeInit 0.96''LCD Light Timer
 		LCD_SoftPWMCtrlDeInit();
@@ -230,8 +268,7 @@ void bspCameraXCLK_Set(uint8_t xclktype)
 	}
 }
 
-void bspCameraInit_Device(I2C_HandleTypeDef *hi2c, framesize_t framesize)
-{
+void bspCameraInit_Device(I2C_HandleTypeDef *hi2c, framesize_t framesize) {
 	hcamera.hi2c = hi2c;
 	hcamera.addr = OV7670_ADDRESS;
 	hcamera.timeout = 100;
@@ -239,36 +276,27 @@ void bspCameraInit_Device(I2C_HandleTypeDef *hi2c, framesize_t framesize)
 	bspCameraread_id(&hcamera);
 	if (hcamera.manuf_id == 0x7fa2 && hcamera.device_id == 0x7673)
 		OV7670_Config();
-	else
-	{
+	else {
 		hcamera.addr = OV2640_ADDRESS;
 		bspCameraread_id(&hcamera);
-		if (hcamera.manuf_id == 0x7fa2 && ((hcamera.device_id - 0x2641) <= 2))
-		{
+		if (hcamera.manuf_id == 0x7fa2 && ((hcamera.device_id - 0x2641) <= 2)) {
 			// bspCameraXCLK_Set(XCLK_TIM);
 			ov2640_init(framesize);
-		}
-		else
-		{
+		} else {
 			hcamera.addr = OV7725_ADDRESS;
 			bspCameraread_id(&hcamera);
-			if (hcamera.manuf_id == 0x7fa2 && ((hcamera.device_id - 0x7721) <= 2))
-			{
+			if (hcamera.manuf_id == 0x7fa2
+					&& ((hcamera.device_id - 0x7721) <= 2)) {
 				// bspCameraXCLK_Set(XCLK_TIM);
 				ov7725_init(framesize);
-			}
-			else
-			{
+			} else {
 
 				hcamera.addr = OV5640_ADDRESS;
 				bspCameraread_id(&hcamera);
-				if (hcamera.device_id == 0x5640)
-				{
+				if (hcamera.device_id == 0x5640) {
 
 					ov5640_init(framesize);
-				}
-				else
-				{
+				} else {
 					hcamera.addr = 0;
 					hcamera.device_id = 0;
 				}

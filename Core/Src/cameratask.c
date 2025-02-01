@@ -20,6 +20,14 @@ uint32_t DCMI_FrameIsReady;
 uint32_t Camera_FPS = 0;
 extern bspCameraHandleTypeDef hcamera;
 
+void setCameraColorbar(bool cameraon){
+	if (cameraon == true){
+      bspCameraSetColorbar(1);
+	} else {
+		bspCameraSetColorbar(0);
+	}
+}
+
 void startCameraTask(void const *argument) {
 	camera_t camdata;
 	bspCameraInit_Device(&hi2c1, FRAMESIZE_QQVGA);

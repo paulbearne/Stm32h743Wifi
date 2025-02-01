@@ -27,6 +27,7 @@
 #include "fatfs.h"
 #include "ff.h"
 #include "main.h"
+#include "bspcamera.h"
 
 #define CONSOLE_VERSION_MAJOR                   1
 #define CONSOLE_VERSION_MINOR                   0
@@ -53,6 +54,14 @@ char cRxData;
 typedef enum {
 	CDCWAITCONNECT, CDCWAITCHAR, CDCFIRSTCONNECT, CDCDISCONNECT, CDCPROCESSCHAR
 } connect_state_t;
+
+typedef struct {
+	char *command;
+	char *help;
+	uint8_t paramcount;
+	int8_t min;
+	int8_t max;
+} camera_commands_t;
 
 EventGroupHandle_t Send_Complete_Handle;
 extern osMessageQId adcQueueHandle;
@@ -125,8 +134,8 @@ static BaseType_t prvCommandCwd(char *pcWriteBuffer, size_t xWriteBufferLen,
 		const char *pcCommandString);
 static BaseType_t prvCommandClearScreen(char *pcWriteBuffer,
 		size_t xWriteBufferLen, const char *pcCommandString);
-static BaseType_t prvCommandCameraFps(char *pcWriteBuffer,
-		size_t xWriteBufferLen, const char *pcCommandString);
+static BaseType_t prvCommandCamera(char *pcWriteBuffer, size_t xWriteBufferLen,
+		const char *pcCommandString);
 /**
  *   @brief  This function is executed in case of error occurrence.
  *   @retval None
@@ -188,7 +197,7 @@ static const CLI_Command_Definition_t xCommands[] =
 						prvCommandAdc, 1 },
 				{ "camera",
 						"\r\ncamera <cameracommand>:\r\n \tGet Camera information\r\ncamera <cameracommand> <value>:\r\n \tSet camera parameter",
-						prvCommandCameraFps, -1 }, { "gettime",
+						prvCommandCamera, -1 }, { "gettime",
 						"\r\ngettime:\r\n \tGet the current time",
 						prvCommandRtcGet, 0 },
 				{ "settime",
@@ -228,6 +237,23 @@ static const CLI_Command_Definition_t xCommands[] =
 						"\r\nversion:\r\n \tGet firmware version",
 						prvCommandVersion, 0 }, { NULL, NULL, NULL, 0 } };
 
+static camera_commands_t cameraCommands[] =
+{
+		{ "fps", "\r\ncamera fps:\r\n \tshow the camera frames pwer second",
+				0, -1, -1 },
+		{ "id", "\r\ncamera id:\r\n \tshow the camera id",
+				0, -1, -1 },
+		{ "type",
+				"\r\ncamera type:\r\n \tshow the camera type", 0, -1, -1 },
+		{ "colorbar",
+				"\r\ncamera colorbar <on/off>:\r\n \tturn the camera test card on or off",
+						2, 0, 1 },
+		{ "effect",
+					"\r\ncamera effect <0-8>:\r\n \tcamera special effect", 2, 0, 8 },
+					{NULL,NULL,0,-1,-1}
+};
+
+
 static const char* getSdStatusStr(FRESULT res) {
 	const char *sdresultstr =
 			"OK\0" "DISK_ERR\0" "INT_ERR\0" "NOT_READY\0" "NO_FILE\0" "NO_PATH\0"
@@ -241,8 +267,8 @@ static const char* getSdStatusStr(FRESULT res) {
 	return sdresultstr;
 }
 
-static BaseType_t prvCommandCameraFps(char *pcWriteBuffer,
-		size_t xWriteBufferLen, const char *pcCommandString) {
+static BaseType_t prvCommandCamera(char *pcWriteBuffer, size_t xWriteBufferLen,
+		const char *pcCommandString) {
 	BaseType_t xParamLen;
 	uint32_t paramcount = prvGetNumberOfParameters(pcCommandString);
 	const char *cmd = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParamLen);
@@ -280,8 +306,39 @@ static BaseType_t prvCommandCameraFps(char *pcWriteBuffer,
 			}
 			return pdFALSE;
 		}
+		if (strcmp(cmd,"help")==0){
+			int i=0;
+			do{
+				strcpy(pcWriteBuffer,cameraCommands[i].help);
+				safe_cdc_write_const(pcWriteBuffer, strlen(pcWriteBuffer));
+				memset(pcWriteBuffer, 0x00, MAX_OUT_STR_LEN);
+				i++;
+			} while(cameraCommands[i].command != NULL);
+			strcpy(pcWriteBuffer,"\n");
+			return pdFALSE;
+
+		}
 	} else if (paramcount == 2) {
 		//set command
+		const char *action = FreeRTOS_CLIGetParameter(pcCommandString, 2,
+				&xParamLen);
+		if (strncmp(cmd, "colorbar",8) == 0) {
+			if (strcmp(action, "on") == 0) {
+				bspCameraSetColorbar(1);
+				strcpy(pcWriteBuffer, "Camera colorbar is on\n");
+				return pdFALSE;
+			} else {
+				bspCameraSetColorbar(0);
+				strcpy(pcWriteBuffer, "Camera colorbar is off\n");
+				return pdFALSE;
+			}
+		}
+		if (strncmp(cmd, "effects",7) == 0) {
+			int val = atoi(action);
+			bspCameraSetSpecialEffects(val);
+			sprintf(pcWriteBuffer, "Camera special effect set to %d\n",val);
+			return pdFALSE;
+		}
 	} else {
 		// wrong number of parameters
 		strncpy(pcWriteBuffer,

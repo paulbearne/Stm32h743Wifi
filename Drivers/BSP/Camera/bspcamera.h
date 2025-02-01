@@ -90,6 +90,8 @@ int32_t bspCameraread_id(bspCameraHandleTypeDef *hov);
 void bspCameraReset(bspCameraHandleTypeDef *hov);
 void bspCameraXCLK_Set(uint8_t xclktype);
 void bspCameraInit_Device(I2C_HandleTypeDef *hi2c, framesize_t framesize);
+int bspCameraSetSpecialEffects(uint8_t sde);
+int bspCameraSetColorbar(int enable);
 
 #endif
 
