@@ -12,7 +12,7 @@ the Weact studio stm32h743 board tasks are modified from the orginal Weact SDK
 the display task at present excepts a string of text and display on the third line 
 the previous text is moved up one line.
 
-This is still workk in progress
+This is still work in progress
 most of the BSP is working
 cli working
 usb msc cdc is working
