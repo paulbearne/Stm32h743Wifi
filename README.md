@@ -18,3 +18,7 @@ cli working
 usb msc cdc is working
 wifi compiles but still in testing phase
 
+Added littlefs to w25qxx flash on spi and qspi 
+updated console to handle file and directory access routines still a few tweaks ongoing
+waiting for break out pcb to arrive to continue with the radio integration
+
